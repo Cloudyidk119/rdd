@@ -2,11 +2,13 @@
     rdd - https://github.com/latte-soft/rdd
 
     Copyright (C) 2024 Latte Softworks <latte.to> | MIT License
+    Modifications by WhatExpsAre.Online to implement CORS proxy
 */
+
+const CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
 
 const basePath = window.location.href.split("?")[0];
 const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINARY_TYPE>&version=<VERSION_HASH>
-
     Binary Types:
     * WindowsPlayer
     * WindowsStudio64
@@ -16,13 +18,13 @@ const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINA
     LONG LIVE WEAO!
     
     Extra Notes:
-    * If \`channel\` isn't provided, it will default to "LIVE" (psuedo identifier for
+    * If \\channel\\ isn't provided, it will default to "LIVE" (psuedo identifier for
       the production channel)
-    * You can provide \`binaryType\` to fetch the *latest* deployment on a channel, or
-      BOTH \`binaryType\` and \`version\` to fetch a specific deployment of a specific
-      binary type; for a specific \`version\`, you NEED to provide \`binaryType\` aswell
+    * You can provide \\binaryType\\ to fetch the *latest* deployment on a channel, or
+      BOTH \\binaryType\\ and \\version\\ to fetch a specific deployment of a specific
+      binary type; for a specific \\version\\, you NEED to provide \\binaryType\\ aswell
 
-    You can also use an extra flag we provide, \`blobDir\`, for specifying where RDD
+    You can also use an extra flag we provide, \\blobDir\\, for specifying where RDD
     should fetch deployment files/binaries from. This is ONLY useful for using
     different relative paths than normal, such as "/mac/arm64" which is specifically
     present on certain channels
@@ -31,9 +33,7 @@ const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINA
     * "/" (Default for WindowsPlayer/WindowsStudio64)
     * "/mac/" (Default for MacPlayer/MacStudio)
     * "/mac/arm64/"
-    ..
-`;
-
+    ..`;
 // Root extract locations for different known zips possible in the Win manifests
 const extractRootsDict = {
     player: {
@@ -205,15 +205,16 @@ function downloadBinaryFile(fileName, data, mimeType = "application/zip") {
 
 // Soley for the manifest etc
 function request(url, callback, errorOnNotOk = true) {
+    const proxiedUrl = CORS_PROXY_URL + encodeURIComponent(url);
     const httpRequest = new XMLHttpRequest();
-    httpRequest.open("GET", url, true);
+    httpRequest.open("GET", proxiedUrl, true);
 
     // When the request is done later..
     httpRequest.onload = function() {
         // Handle req issues, and don't call-back
         const statusCode = httpRequest.status
         if (errorOnNotOk && (statusCode < 200 || statusCode >= 400)) {
-            log(`[!] Request error (${statusCode}) @ ${url} - ${httpRequest.responseText}`);
+            log(`[!] Request error (${statusCode}) @ ${url} (via proxy: ${proxiedUrl}) - ${httpRequest.responseText}`);
             return;
         }
 
@@ -221,30 +222,31 @@ function request(url, callback, errorOnNotOk = true) {
     };
 
     httpRequest.onerror = function(e) {
-        log(`[!] Request error @ ${url}`);
+        log(`[!] Request error @ ${url} (via proxy: ${proxiedUrl})`);
     };
 
     httpRequest.send();
 };
 
 function requestBinary(url, callback) {
+    const proxiedUrl = CORS_PROXY_URL + encodeURIComponent(url);
     const httpRequest = new XMLHttpRequest();
 
-    httpRequest.open("GET", url, true);
+    httpRequest.open("GET", proxiedUrl, true);
     httpRequest.responseType = "arraybuffer";
 
     // When the request is done later..
     httpRequest.onload = function() {
         // Handle req issues, and don't call-back
         const statusCode = httpRequest.status
-        if (statusCode != 200) {
-            log(`[!] Binary request error (${statusCode}) @ ${url}`);
+        if (statusCode != 200) { // Proxies might return 200 even if the target failed, but allorigins usually mirrors status
+            log(`[!] Binary request error (${statusCode}) @ ${url} (via proxy: ${proxiedUrl})`);
             return;
         }
 
         const arrayBuffer = httpRequest.response;
         if (! arrayBuffer) {
-            log(`[!] Binary request error (${statusCode}) @ ${url} - Failed to get binary ArrayBuffer from response`);
+            log(`[!] Binary request error (${statusCode}) @ ${url} (via proxy: ${proxiedUrl}) - Failed to get binary ArrayBuffer from response`);
             return;
         }
 
@@ -252,7 +254,7 @@ function requestBinary(url, callback) {
     };
 
     httpRequest.onerror = function(e) {
-        log(`[!] Binary request error @ ${url} - ${e}`);
+        log(`[!] Binary request error @ ${url} (via proxy: ${proxiedUrl}) - ${e}`);
     };
 
     httpRequest.send();
@@ -300,7 +302,7 @@ function main() {
             hostPath = hostPath.slice(0, -1);
         }
     } else {
-        hostPath = "https://setup.rbxcdn.com"; // setup.rbxcdn.com doesn't have the proper CORS cfg
+        hostPath = "https://setup.rbxcdn.com"; 
     }
 
     // Optional
@@ -329,7 +331,7 @@ function main() {
 
     // We're also checking to make sure blobDir hasn't been included too for the compatibility warning later
     if (version && ! binaryType) {
-        log("[!] Error: If you provide a specific `version`, you need to set the `binaryType` aswell! See the usage doc below for examples of various `binaryType` inputs:", "\n\n");
+        log("[!] Error: If you provide a specific version, you need to set the binaryType aswell! See the usage doc below for examples of various binaryType inputs:", "\n\n");
         log(usageMsg, "\n", false);
         return;
     }
@@ -342,14 +344,10 @@ function main() {
             blobDir += "/"
         }
 
-        // We used to support usage of ONLY `blobDir` & `version` in the past, requiring us
-        // to essentially "guess" the desired binaryType ourselves! (how fun, right!?)
         if (! binaryType) {
-            log(`[!] Error: Using the \`blobDir\` query without defining \`binaryType\` has been
-    deprecated, and can no longer be used in requests. If you were using \`blobDir\`
+            log(`[!] Error: Using the \\blobDir\\ query without defining \\binaryType\\ has been    deprecated, and can no longer be used in requests. If you were using \\blobDir\\
     explicitly for MacPlayer/MacStudio with "blobDir=mac" or "/mac", please replace
-    blobDir with a \`binaryType\` of either MacPlayer or MacStudio respectively`, "\n\n");
-
+    blobDir with a \\binaryType\\ of either MacPlayer or MacStudio respectively, "\n\n`);
             log(usageMsg, "\n", false);
             return;
         }
@@ -357,7 +355,7 @@ function main() {
 
     if (compressZip) {
         if (compressZip !== "true" && compressZip !== "false") {
-            log(`[!] Error: The \`compressZip\` query must be a boolean ("true" or "false"), got "${compressZip}"`);
+            log(`[!] Error: The \\compressZip\\ query must be a boolean ("true" or "false"), got "${compressZip}"`);
         }
 
         compressZip = (compressZip === "true");
@@ -369,57 +367,54 @@ function main() {
         try {
             compressionLevel = parseInt(compressionLevel);
         } catch (err) {
-            log(`[!] Error: Failed to parse \`compressionLevel\` query: ${error}`, "\n\n");
+            log(`[!] Error: Failed to parse \\compressionLevel\\ query: ${err}`, "\n\n");
             log(usageMsg, "\n", false);
             return;
         }
 
         if (compressionLevel > 9 || compressionLevel < 1) {
-            log(`[!] Error: The \`compressionLevel\` query must be a value between 1 and 9, got ${compressionLevel}`, "\n\n");
+            log(`[!] Error: The \\compressionLevel\\ query must be a value between 1 and 9, got ${compressionLevel}`, "\n\n");
             log(usageMsg, "\n", false);
             return;
         }
     } else {
-        compressionLevel = downloadForm.compressionLevel.value; // Only applies to when `compressZip` is true aswell
+        compressionLevel = downloadForm.compressionLevel.value; // Only applies to when compressZip is true aswell
     }
 
-    // At this point, we expect `binaryType` to be defined if all is well on input from the user..
     if (! binaryType) {
-        // Again, we used to support specific versions without denoting binaryType explicitly
-        log("[!] Error: Missing required \`binaryType\` query, are you using an old perm link for a specific version?", "\n\n");
+        log("[!] Error: Missing required \\binaryType\\ query, are you using an old perm link for a specific version?", "\n\n");
         log(usageMsg, "\n", false);
         return;
     }
 
-    let versionFilePath; // Only used if `version` isn't already defined (later, see code below the if-else after this)
+    let versionFilePath; 
     if (binaryType in binaryTypes) {
         const binaryTypeObject = binaryTypes[binaryType];
         versionFilePath = channelPath + binaryTypeObject.versionFile;
 
-        // If `blobDir` has already been defined by the user, we don't want to override it here..
         if (! blobDir) {
             blobDir = binaryTypeObject.blobDir;
         }
     } else {
-        log(`[!] Error: \`binaryType\` given, "${binaryType}" not supported. See list below for supported \`binaryType\` inputs:`, "\n\n");
+        log(`[!] Error: \\binaryType\\ given, "${binaryType}" not supported. See list below for supported \\binaryType\\ inputs:, "\n\n`);
         log(usageMsg);
         return;
     }
 
     if (version) {
-        // We're already good to go
         fetchManifest();
     } else {
         const binaryTypeEncoded = escHtml(binaryType);
         const channelNameEncoded = escHtml(channel);
 
-        const clientSettingsUrl = `https://clientsettings.roblox.com/v2/client-version/${binaryTypeEncoded}/channel/${channelNameEncoded}`;
+        const originalClientSettingsUrl = `https://clientsettings.roblox.com/v2/client-version/${binaryTypeEncoded}/channel/${channelNameEncoded}`;
+        const proxiedClientSettingsUrl = CORS_PROXY_URL + encodeURIComponent(originalClientSettingsUrl);
+        
         log("Copy the version hash (the area with \"version-xxxxxxxxxxxxxxxx\" in double-quotes) from the page in the link below (we can't because of CORS), and paste it in the field named \"Version Hash\" in the form above\n");
-        consoleText.innerHTML += `<a target="_blank" href="${clientSettingsUrl}">${clientSettingsUrl}</a><br><br><br>`;
+        consoleText.innerHTML += `<a target="_blank" href="${proxiedClientSettingsUrl}">${proxiedClientSettingsUrl}</a><br><br><br>`;
 
-        // Same options as may have been input from the page before
-        downloadForm.channel.value = channelNameEncoded;
-        downloadForm.binaryType.value = binaryTypeEncoded;
+        downloadForm.channel.value = channel; // Use raw channel value for form
+        downloadForm.binaryType.value = binaryType; // Use raw binaryType for form
         downloadForm.compressZip.checked = compressZip;
         downloadForm.compressionLevel.value = compressionLevel;
 
@@ -437,15 +432,14 @@ function fetchManifest() {
         log(`[+] Fetching zip archive for BinaryType "${binaryType}" (${zipFileName})`);
 
         const outputFileName = `${channel}-${binaryType}-${version}.zip`;
-        log(`[+] (Please wait!) Downloading ${outputFileName}..`, "");
+        log(`[+] (Please wait!) Downloading ${outputFileName}..,`, "");
 
         requestBinary(versionPath + zipFileName, function(zipData) {
             log("done!");
             downloadBinaryFile(outputFileName, zipData);
         });
     } else {
-        // Now, we're only dealing with Windows bin logic
-        log(`[+] Fetching rbxPkgManifest for ${version}@${channel}.. `, "");
+        log(`[+] Fetching rbxPkgManifest for ${version}@${channel}.. ,`, "");
         request(versionPath + "rbxPkgManifest.txt", function(manifestBody) {
             log("done!");
             downloadZipsFromManifest(manifestBody);
@@ -465,14 +459,14 @@ async function downloadZipsFromManifest(manifestBody) {
         extractRoots = extractRootsDict.player;
 
         if (binaryType === "WindowsStudio64") {
-            log(`[!] Error: BinaryType \`${binaryType}\` given, but "RobloxApp.zip" was found in the manifest!`);
+            log(`[!] Error: BinaryType \\${binaryType}\\ given, but "RobloxApp.zip" was found in the manifest!`);
             return;
         }
     } else if (pkgManifestLines.includes("RobloxStudio.zip")) {
         extractRoots = extractRootsDict.studio;
 
         if (binaryType === "WindowsPlayer") {
-            log(`[!] Error: BinaryType \`${binaryType}\` given, but "RobloxStudio.zip" was found in the manifest!`);
+            log(`[!] Error: BinaryType \\${binaryType}\\ given, but "RobloxStudio.zip" was found in the manifest!`);
             return;
         }
     } else {
@@ -480,18 +474,14 @@ async function downloadZipsFromManifest(manifestBody) {
         return;
     }
 
-    log(`[+] Fetching blobs for BinaryType \`${binaryType}\`..`);
+    log(`[+] Fetching blobs for BinaryType \\${binaryType}\\..`);
 
     zip = new JSZip();
     
-    // For both WindowsPlayer and WindowsStudio64
-    zip.file("AppSettings.xml", `<?xml version="1.0" encoding="UTF-8"?>
-<Settings>
+    zip.file("AppSettings.xml", `<?xml version="1.0" encoding="UTF-8"?><Settings>
 	<ContentFolder>content</ContentFolder>
 	<BaseUrl>http://www.roblox.com</BaseUrl>
-</Settings>
-`);
-
+</Settings>`);
     let threadsLeft = 0;
 
     function doneCallback() {
@@ -499,13 +489,13 @@ async function downloadZipsFromManifest(manifestBody) {
     };
 
     function getThreadsLeft() {
-        return threadsLeft - 1;
+        return threadsLeft - 1; // Return value before it would be decremented by a subsequent doneCallback
     };
 
     for (const index in pkgManifestLines) {
         const pkgManifestLine = pkgManifestLines[index];
         if (! pkgManifestLine.includes(".")) {
-            continue; // Not a file in the manifest! (yes, this is quite a lazy way to check it lol)
+            continue; 
         } else if (! pkgManifestLine.endsWith(".zip")) {
             continue;
         }
@@ -520,20 +510,19 @@ async function downloadZipsFromManifest(manifestBody) {
             return;
         }
 
-        // Now, we can export and download the complete zip
         const outputFileName = `${channel}-${binaryType}-${version}.zip`;
         log();
         if (compressZip) {
             log(`[!] NOTE: Compressing final zip (with a compression level of ${compressionLevel}/9), this may take a bit longer than with no compression..`);
         }
 
-        log(`[+] Exporting assembled zip file "${outputFileName}".. `, "");
+        log(`[+] Exporting assembled zip file "${outputFileName}".. ,`, "");
 
         zip.generateAsync({
             type: "arraybuffer",
             compression: compressZip ? "DEFLATE" : "STORE",
             compressionOptions: {
-                level: compressionLevel
+                level: parseInt(compressionLevel) // Ensure it's an int
             }
         }).then(function(outputZipData) {
             zip = null;
@@ -553,7 +542,7 @@ async function downloadPackage(packageName, doneCallback, getThreadsLeft) {
         log(`[+] Received package "${packageName}"!`);
 
         if (packageName in extractRoots == false) {
-            log(`[*] Package name "${packageName}" not defined in extraction roots for BinaryType \`${binaryType}\`, skipping extraction! (THIS MAY MAKE THE ZIP OUTPUT INCOMPLETE, BE AWARE!)`);
+            log(`[*] Package name "${packageName}" not defined in extraction roots for BinaryType \\${binaryType}\\, skipping extraction! (THIS MAY MAKE THE ZIP OUTPUT INCOMPLETE, BE AWARE!)`);
             zip.file(packageName, blobData);
             log(`[+] Moved package "${packageName}" directly to the root folder`);
             doneCallback();
@@ -568,7 +557,7 @@ async function downloadPackage(packageName, doneCallback, getThreadsLeft) {
             let fileGetPromises = [];
 
             packageZip.forEach(function(path, object) {
-                if (path.endsWith("\\")) {
+                if (path.endsWith("\\") || path.endsWith("/")) { // Check for both Windows and Unix style directory separators
                     // If it's a directory, skip
                     return;
                 }
