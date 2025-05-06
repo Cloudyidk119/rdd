@@ -12,6 +12,8 @@ const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINA
     * WindowsStudio64
     * MacPlayer
     * MacStudio
+
+    LONG LIVE WEAO!
     
     Extra Notes:
     * If \`channel\` isn't provided, it will default to "LIVE" (psuedo identifier for
@@ -298,7 +300,7 @@ function main() {
             hostPath = hostPath.slice(0, -1);
         }
     } else {
-        hostPath = "https://roblox-setup.cachefly.net"; // setup.rbxcdn.com doesn't have the proper CORS cfg
+        hostPath = "https://setup.rbxcdn.com"; // setup.rbxcdn.com doesn't have the proper CORS cfg
     }
 
     // Optional
