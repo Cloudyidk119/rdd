@@ -5,7 +5,7 @@
     Modifications by WhatExpsAre.Online to implement CORS proxy
 */
 
-const CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
+const CORS_PROXY_URL = "https://lively-salad-f73e.vnnaworks.workers.dev/?url=";
 
 const basePath = window.location.href.split("?")[0];
 const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINARY_TYPE>&version=<VERSION_HASH>
