@@ -1,15 +1,22 @@
-# RDD - "Roblox Deployment Downloader"
+[commits]: https://github.com/latte-soft/rdd/commits
+[badges/last-modified]: https://img.shields.io/github/last-commit/latte-soft/rdd?label=Last%20Modifed
 
-Static Website for Locally Downloading Windows/Mac Roblox Deployments (Player & Studio) Directly from Your Browser!
+> [!CAUTION]
+> The only *official* host of RDD is [**`rdd.[latte.to]`**](https://rdd.latte.to). Under no circumstances is Latte Softworks responsible for any potential harm caused by using an unofficial fork/rehost of RDD, though anyone is free to fork off of or rehost RDD as it is under the MIT license. RDD is a static website with none of its own backend infrastructure, binaries are fetched directly from Roblox's official content delivery network via [**`setup-cfly.[rbxcdn.com]`**](https://setup-cfly.rbxcdn.com).
 
+## RDD ("Roblox Deployment Downloader")
+
+[![Last Modified][badges/last-modified]][commits]
+
+Locally download Roblox deployments (Windows/Mac) directly from your browser!
 
 Hosted officially @ <https://rdd.latte.to>
 
-## What is this?
+### What is this?
 
-RDD is a [**static** website](https://en.wikipedia.org/wiki/Static_web_page) for locally downloading Roblox deployments - RDD can assemble plain resources directly from Roblox's [`setup`](https://setup.rbxcdn.com) S3 storage bucket, into a complete format the user would expect to be able to directly download and extract/run. **Everything is fetched locally in your browser, without any required server resources!**
+RDD can assemble plain resources directly from Roblox's [`setup`](https://setup.rbxcdn.com) S3 storage bucket into a format the user would expect to be able to directly extract/run from. **Everything is fetched locally in your browser, without any additional required server resources!**
 
-## Usage
+### Usage
 
 ```txt
 [*] USAGE: https://rdd.latte.to/?channel=<CHANNEL_NAME>&binaryType=<BINARY_TYPE>&version=<VERSION_HASH>
@@ -21,7 +28,7 @@ RDD is a [**static** website](https://en.wikipedia.org/wiki/Static_web_page) for
     * MacStudio
     
     Extra Notes:
-    * If `channel` isn't provided, it will default to "LIVE" (psuedo identifier for
+    * If `channel` isn't provided, it will default to "LIVE" (pseudo identifier for
       the production channel)
     * You can provide `binaryType` to fetch the *latest* deployment on a channel, or
       BOTH `binaryType` and `version` to fetch a specific deployment of a specific
@@ -40,10 +47,9 @@ RDD is a [**static** website](https://en.wikipedia.org/wiki/Static_web_page) for
 
 ```
 
-## Extras
+### Extras
 
-* [JSZip](https://github.com/Stuk/jszip) (Used to power `WindowsPlayer`/`WindowsStudio` file extraction/generation)
-* [Latte Softworks Discord Community](https://latte.to/discord)
+* [JSZip](https://github.com/Stuk/jszip) (Used for `WindowsPlayer`/`WindowsStudio` file extraction/generation)
 * <https://github.com/latte-soft/channel-tracker>
 
 ## License
@@ -53,7 +59,7 @@ See file: [LICENSE](LICENSE)
 ```
 MIT License
 
-Copyright (c) 2024 Latte Softworks <https://latte.to>
+Copyright (c) 2024-2025 Latte Softworks <https://latte.to>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
