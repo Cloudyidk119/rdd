@@ -37,8 +37,8 @@ const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINA
     ..
 `;
 
-const hostPath = "https://r2.weao.xyz"; // We replaced Roblox's S3 with our own R2 bucket to avoid CORS issues, seems to work!
-
+// const hostPath = "https://r2.weao.xyz"; // We replaced Roblox's S3 with our own R2 bucket to avoid CORS issues, seems to work! (this is now only a backup rdd was fixed)
+const hostPath = "https://setup-aws.rbxcdn.com"; 
 // Root extract locations for the Win manifests
 const extractRoots = {
     player: {
@@ -118,6 +118,8 @@ const extractRoots = {
 // for purposes like this, and tracking. We also *can't* use clientsettings, due to
 // CORS policies of course..
 // Edited by WEAO to use our proprietary R2 Bucket (Should increase download speeds?)
+// Only for WEAO R2 if Roblox breaks CORS again
+/*
 const binaryTypes = {
     WindowsPlayer: {
         versionFile: "/windows/version",
@@ -136,6 +138,26 @@ const binaryTypes = {
         blobDir: "/mac/"
     },
 };
+*/
+
+const binaryTypes = {
+    WindowsPlayer: {
+        versionFile: "/version",
+        blobDir: "/"
+    },
+    WindowsStudio64: {
+        versionFile: "/versionQTStudio",
+        blobDir: "/"
+    },
+    MacPlayer: {
+        versionFile: "/mac/version",
+        blobDir: "/mac/"
+    },
+    MacStudio: {
+        versionFile: "/mac/versionStudio",
+        blobDir: "/mac/"
+    },
+}
 
 const urlParams = new URLSearchParams(window.location.search);
 
@@ -525,7 +547,8 @@ function main() {
 };
 
 async function fetchManifest() {
-    versionPath = `${channelPath}${blobDir}${version}/`; // WEAO's R2 uses a / instead of - for the path :)
+   // versionPath = `${channelPath}${blobDir}${version}/`; // WEAO's R2 uses a / instead of - for the path :)
+    versionPath = `${channelPath}${blobDir}${version}-`; // aws s3 uses a - for the path :)
 
     if (binaryType === "MacPlayer" || binaryType === "MacStudio") {
         const zipFileName = (binaryType == "MacPlayer" && "RobloxPlayer.zip") || (binaryType == "MacStudio" && "RobloxStudioApp.zip")
