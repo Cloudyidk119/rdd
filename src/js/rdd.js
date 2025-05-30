@@ -554,6 +554,7 @@ async function fetchManifest() {
                     log("[!] Oh no! It seems this version has vanished like a ghost... 👻");
                     log("    We haven't cached this version yet.");
                     log("    If WEAO/Roblox Update Tracker just detected a new version, it may take a few minutes to cache it.");
+                    log("    Try again after 1-10 minutes!");
                 } else {
                     log(`[!] Failed to fetch rbxPkgManifest: (status: ${resp.status}, err: ${(await resp.text()) || "<failed to get response from server>"})`);
                 }
