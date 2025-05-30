@@ -550,7 +550,13 @@ async function fetchManifest() {
         try {
             const resp = await fetch(versionPath + "rbxPkgManifest.txt");
             if (!resp.ok) {
-                log(`[!] Failed to fetch rbxPkgManifest: (status: ${resp.status}, err: ${(await resp.text()) || "<failed to get response from server>"})`);
+                if (resp.status === 404) {
+                    log("[!] Oh no! It seems this version has vanished like a ghost... 👻");
+                    log("    We haven't cached this version yet.");
+                    log("    If WEAO/Roblox Update Tracker just detected a new version, it may take a few minutes to cache it.");
+                } else {
+                    log(`[!] Failed to fetch rbxPkgManifest: (status: ${resp.status}, err: ${(await resp.text()) || "<failed to get response from server>"})`);
+                }
                 return;
             }
             manifestBody = await resp.text();
