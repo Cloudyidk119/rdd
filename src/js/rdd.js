@@ -171,6 +171,72 @@ function copyLinkFromForm() {
     navigator.clipboard.writeText(getLinkFromForm());
 };
 
+async function fetchVersionInfo(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+}
+
+async function downloadLatestVersion() { // Easy button to download the latest version of a binary! 
+    const binaryType = downloadForm.binaryType.value;
+    const channelName = downloadForm.channel.value.trim() || downloadForm.channel.placeholder;
+    let versionHash;
+
+    try {
+        const data = await fetchVersionInfo("https://weao.xyz/api/versions/current");
+        if (binaryType === "WindowsPlayer" || binaryType === "WindowsStudio64") {
+            versionHash = data.Windows;
+        } else if (binaryType === "MacPlayer" || binaryType === "MacStudio") {
+            versionHash = data.Mac;
+        } else {
+            log("[!] Error: Unknown binary type for latest version download.");
+            return;
+        }
+
+        let queryString = `?channel=${encodeURIComponent(channelName)}&binaryType=${encodeURIComponent(binaryType)}&version=${encodeURIComponent(versionHash)}`;
+        const compressZip = downloadForm.compressZip.checked;
+        const compressionLevel = downloadForm.compressionLevel.value;
+        if (compressZip === true) {
+            queryString += `&compressZip=true&compressionLevel=${compressionLevel}`;
+        }
+        window.open(basePath + queryString, "_blank");
+
+    } catch (error) {
+        log(`[!] Error fetching latest version: ${error.message}`);
+    }
+}
+
+async function downloadPreviousVersion() { // Helps retart swift users to downgrade to exploit :sob: 
+    const binaryType = downloadForm.binaryType.value;
+    const channelName = downloadForm.channel.value.trim() || downloadForm.channel.placeholder;
+    let versionHash;
+
+    try {
+        const data = await fetchVersionInfo("https://weao.xyz/api/versions/past");
+        if (binaryType === "WindowsPlayer" || binaryType === "WindowsStudio64") {
+            versionHash = data.Windows;
+        } else if (binaryType === "MacPlayer" || binaryType === "MacStudio") {
+            versionHash = data.Mac;
+        } else {
+            log("[!] Error: Unknown binary type for previous version download.");
+            return;
+        }
+
+        let queryString = `?channel=${encodeURIComponent(channelName)}&binaryType=${encodeURIComponent(binaryType)}&version=${encodeURIComponent(versionHash)}`;
+        const compressZip = downloadForm.compressZip.checked;
+        const compressionLevel = downloadForm.compressionLevel.value;
+        if (compressZip === true) {
+            queryString += `&compressZip=true&compressionLevel=${compressionLevel}`;
+        }
+        window.open(basePath + queryString, "_blank");
+
+    } catch (error) {
+        log(`[!] Error fetching previous version: ${error.message}`);
+    }
+}
+
 function scrollToBottom() {
     window.scrollTo({
         top: document.body.scrollHeight
@@ -560,7 +626,7 @@ async function downloadZipsFromManifest(manifestBody) {
     async function downloadNextPackage() {
         if (filesToDownload.length === 0) {
             // All packages have been downloaded
-            // Now, we can export and download the complete zip
+            // Time to export
             const outputFileName = `WEAO-${channel}-${binaryType}-${version}.zip`;
             log();
             if (compressZip) {
@@ -568,7 +634,7 @@ async function downloadZipsFromManifest(manifestBody) {
             }
             log("Thank you for using WEAO RDD! If you have any issues, please report them at our discord server: https://discord.gg/weao");
             log(`[+] Exporting assembled zip file "${outputFileName}".. `, "");
-            hideProgressBar(); // Hide progress bar before starting zip generation
+            hideProgressBar(); 
 
             zip.generateAsync({
                 type: "arraybuffer",
@@ -577,20 +643,19 @@ async function downloadZipsFromManifest(manifestBody) {
                     level: compressionLevel
                 }
             }, function update(metadata) {
-                // This callback is for the zip generation progress
                 const percentage = metadata.percent.toFixed(2);
                 updateProgressBar(percentage, `Compressing package: ${percentage}%`);
             }).then(function (outputZipData) {
                 zip = null;
                 log("done!");
-                hideProgressBar(); // Hide progress bar after zip generation is complete
+                hideProgressBar();
 
                 downloadBinaryFile(outputFileName, outputZipData);
             });
             return;
         }
 
-        const packageName = filesToDownload.shift(); // Get the next package to download
+        const packageName = filesToDownload.shift(); // Next package
         log(`[+] Fetching "${packageName}"...`);
         const blobUrl = versionPath + packageName;
 
@@ -628,11 +693,11 @@ async function downloadZipsFromManifest(manifestBody) {
                 log(`[+] Extracted "${packageName}"!`);
             }
             filesDownloadedCount++;
-            // Continue with the next package
+            // Now just continue thx
             downloadNextPackage();
 
         }, function(percentage, loaded, total) {
-            // Update progress for the current file being downloaded
+            // Update the progress 
             const message = `Workspaceing ${packageName}: ${percentage}% (${formatBytes(loaded)} / ${formatBytes(total)})`;
             updateProgressBar(percentage, message);
         });

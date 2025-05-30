@@ -87,7 +87,9 @@
             <label for="compressionLevel">Zip Compression Level (1-9):</label>
             <input id="compressionLevel" name="compressionLevel" type="number" min="1" max="9" value="5">
             <br><br>
-            <button type="button" onclick="downloadFromForm();">Download</button>
+            <button type="button" onclick="downloadFromForm();">Download Specified Hash</button>
+            <button type="button" onclick="downloadLatestVersion();">Download Latest Version</button>
+            <button type="button" onclick="downloadPreviousVersion();">Download Previous Version</button>
             <button type="button" onclick="copyLinkFromForm();">Copy Permanent Link</button>
             <br>
         </form>
