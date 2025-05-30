@@ -20,6 +20,9 @@ const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINA
     * You can provide \`binaryType\` to fetch the *latest* deployment on a channel, or
       BOTH \`binaryType\` and \`version\` to fetch a specific deployment of a specific
       binary type; for a specific \`version\`, you NEED to provide \`binaryType\` aswell
+    * Hitting *Download Latest Version* will automatically fetch the latest deployment of Roblox
+    * Hitting *Download Previous Version* will automatically fetch the previous deployment of Roblox (downgrade)
+    * If you want to download a specific version, specify the version hash in the version field and hit *Download Specified Hash*
 
     You can also use an extra flag we provide, \`blobDir\`, for specifying where RDD
     should fetch deployment files/binaries from. This is ONLY useful for using
