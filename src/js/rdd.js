@@ -4,7 +4,11 @@
     Copyright (C) 2024-2025 Latte Softworks <latte.to> | MIT License
     Forked by WEAO < Long Live WEAO! >
 */
-
+// fix for the phishing message on downloading Roblox (false positive)
+if (window.location.hostname === "rdd.weao.xyz") { 
+    const newUrl = window.location.href.replace("rdd.weao.xyz", "rdd.weao.gg");
+    window.location.replace(newUrl);
+}
 const basePath = window.location.href.split("?")[0];
 const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINARY_TYPE>&version=<VERSION_HASH>
 
