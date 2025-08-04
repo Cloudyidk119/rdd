@@ -35,9 +35,7 @@ const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINA
     ..
 `;
 
-// const hostPath = "https://r2.weao.xyz"; // We replaced Roblox's S3 with our own R2 bucket to avoid CORS issues, seems to work! (this is now only a backup rdd was fixed)
 const hostPath = "https://setup-aws.rbxcdn.com"; 
-// Root extract locations for the Win manifests
 const extractRoots = {
     player: {
         "RobloxApp.zip": "",
@@ -117,8 +115,6 @@ const extractRoots = {
 // Yes, these files on S3 are meant for "legacy bootstrappers", but they work great
 // for purposes like this, and tracking. We also *can't* use clientsettings, due to
 // CORS policies of course..
-// Edited by WEAO to use our proprietary R2 Bucket (Should increase download speeds?)
-// Only for WEAO R2 if Roblox breaks CORS again
 /*
 const binaryTypes = {
     WindowsPlayer: {
@@ -554,7 +550,7 @@ async function fetchManifest() {
         const zipFileName = (binaryType == "MacPlayer" && "RobloxPlayer.zip") || (binaryType == "MacStudio" && "RobloxStudioApp.zip")
         log(`[+] Fetching zip archive for BinaryType "${binaryType}" (${zipFileName})`);
 
-        const outputFileName = `WEAO-${channel}-${binaryType}-${version}.zip`; // little promo dont hurt right? :D
+        const outputFileName = `voltaris-${channel}-${binaryType}-${version}.zip`;
         log(`[+] (Please wait!) Downloading ${outputFileName}..`, "");
 
         updateProgressBar(0, `Starting download for ${zipFileName}...`);
