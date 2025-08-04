@@ -2,13 +2,8 @@
     rdd - https://github.com/latte-soft/rdd
 
     Copyright (C) 2024-2025 Latte Softworks <latte.to> | MIT License
-    Forked by WEAO < Long Live WEAO! >
+    Forked by Voltaris
 */
-// fix for the phishing message on downloading Roblox (false positive)
-if (window.location.hostname === "rdd.weao.xyz") { 
-    const newUrl = window.location.href.replace("rdd.weao.xyz", "rdd.weao.gg");
-    window.location.replace(newUrl);
-}
 const basePath = window.location.href.split("?")[0];
 const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINARY_TYPE>&version=<VERSION_HASH>
 
@@ -37,7 +32,6 @@ const usageMsg = `[*] USAGE: ${basePath}?channel=<CHANNEL_NAME>&binaryType=<BINA
     * "/" (Default for WindowsPlayer/WindowsStudio64)
     * "/mac/" (Default for MacPlayer/MacStudio)
     * "/mac/arm64/"
-    LONG LIVE WEAO! <3
     ..
 `;
 
@@ -553,7 +547,7 @@ function main() {
 };
 
 async function fetchManifest() {
-   // versionPath = `${channelPath}${blobDir}${version}/`; // WEAO's R2 uses a / instead of - for the path :)
+   // versionPath = `${channelPath}${blobDir}${version}/`; // R2 uses a / instead of - for the path :)
     versionPath = `${channelPath}${blobDir}${version}-`; // aws s3 uses a - for the path :)
 
     if (binaryType === "MacPlayer" || binaryType === "MacStudio") {
@@ -582,7 +576,7 @@ async function fetchManifest() {
                 if (resp.status === 404) {
                     log("[!] Oh no! It seems this version has vanished like a ghost... 👻");
                     log("    We haven't cached this version yet.");
-                    log("    If WEAO/Roblox Update Tracker just detected a new version, it may take a few minutes to cache it.");
+                    log("    If Roblox Update Tracker just detected a new version, it may take a few minutes to cache it.");
                     log("    Try again after 1-10 minutes!");
                 } else {
                     log(`[!] Failed to fetch rbxPkgManifest: (status: ${resp.status}, err: ${(await resp.text()) || "<failed to get response from server>"})`);
@@ -666,12 +660,12 @@ async function downloadZipsFromManifest(manifestBody) {
         if (filesToDownload.length === 0) {
             // All packages have been downloaded
             // Time to export
-            const outputFileName = `WEAO-${channel}-${binaryType}-${version}.zip`;
+            const outputFileName = `voltaris-${channel}-${binaryType}-${version}.zip`;
             log();
             if (compressZip) {
                 log(`[!] NOTE: Compressing final zip (with a compression level of ${compressionLevel}/9), this may take a bit longer than with no compression..`);
             }
-            log("Thank you for using WEAO RDD! If you have any issues, please report them at our discord server: https://discord.gg/weao");
+            log("Thank you for using Voltaris RDD! If you have any issues, please report them at our discord server: https://discord.gg/XKZ8auvS2B");
             log(`[+] Exporting assembled zip file "${outputFileName}".. `, "");
             hideProgressBar(); 
 
